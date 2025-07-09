@@ -12,33 +12,45 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Moon, Sun, Menu, Code2, Terminal, Brain, Eye, Repeat, Zap } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { AuthForm } from "@/components/auth/auth-form"
+
+const LOCAL_STORAGE_KEY = "Akash360@"
 
 export default function ProductiveMe() {
+  // login state
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [checkedAuth, setCheckedAuth] = useState(false)
+
+  // theme state
   const [theme, setTheme] = useState<"light" | "dark">("dark")
   const [mounted, setMounted] = useState(false)
 
+  // check login auth
   useEffect(() => {
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem("productive-me-theme") as "light" | "dark" | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    } else {
-      // Default to dark theme for developers
-      setTheme("dark")
+    const auth = localStorage.getItem(LOCAL_STORAGE_KEY)
+    if (auth === "true") {
+      setIsAuthenticated(true)
     }
+    setCheckedAuth(true)
+  }, [])
+
+  // check theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("productive-me-theme") as "light" | "dark" | null
+    setTheme(savedTheme || "dark")
     setMounted(true)
   }, [])
 
+  // apply theme
   useEffect(() => {
     if (mounted) {
-      // Apply theme to document
       document.documentElement.classList.remove("light", "dark")
       document.documentElement.classList.add(theme)
       localStorage.setItem("productive-me-theme", theme)
     }
   }, [theme, mounted])
 
-  // Silence preview Service-Worker errors
+  // fix service worker issue
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker)
@@ -48,8 +60,8 @@ export default function ProductiveMe() {
         } catch (err) {
           if (String(args[0]).includes("__v0_sw.js")) {
             return {
-              update() {},
-              unregister() {},
+              update() { },
+              unregister() { },
             } as unknown as ServiceWorkerRegistration
           }
           throw err
@@ -62,12 +74,18 @@ export default function ProductiveMe() {
     setTheme(theme === "dark" ? "light" : "dark")
   }
 
-  if (!mounted) {
+  // wait for both theme and auth to load
+  if (!mounted || !checkedAuth) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     )
+  }
+
+  // show login
+  if (!isAuthenticated) {
+    return <AuthForm onAuthSuccess={() => setIsAuthenticated(true)} />
   }
 
   return (
