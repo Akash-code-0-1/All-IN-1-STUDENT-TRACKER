@@ -9,8 +9,15 @@
 
 ## 📸 Screenshots  
 
-> ![](https://link.to/screenshot1.png)  
-> ![](https://link.to/screenshot2.png)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/1.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/2.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/3.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/4.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/5.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/6.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/7.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/8.PNG)  
+> ![](https://github.com/Akash-code-0-1/All-IN-1-STUDENT-TRACKER/blob/main/components/outputImages/9.PNG)  
 
 ---
 
@@ -125,12 +132,12 @@ For major changes, open an issue first to discuss what you’d like to improve o
 
 ---
 
-## 💌 Contact
+## 💌 Contact  
 
-👨‍💻 **Developer:** MD. Tanvir Ahmed Akash
-📧 **Email:** [tanvir0ah0akash@gmail.com](mailto:tanvir0ah0akash@gmail.com)
-🌐 **GitHub:** [Akash-code-0-1](https://github.com/Akash-code-0-1)
-💼 **LinkedIn:** [MD. Tanvir Ahmed Akash](https://www.linkedin.com/in/md-tanvir-ahmed-akash-8ba50b2b9/)
+👨‍💻 **Developer:** MD. Tanvir Ahmed Akash  
+📧 **Email:** tanvir0ah0akash@gmail.com  
+🌐 **GitHub:** [Akash-code-0-1](https://github.com/Akash-code-0-1)  
+💼 **LinkedIn:** [MD. Tanvir Ahmed Akash](https://www.linkedin.com/in/md-tanvir-ahmed-akash-8ba50b2b9/)  
 
 ---
 
