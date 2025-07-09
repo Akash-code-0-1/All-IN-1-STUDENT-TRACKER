@@ -1,108 +1,138 @@
-# ProductiveMe - Global Productivity Dashboard
 
-A comprehensive productivity application with cloud sync, AI insights, focus modes, habit tracking, and more.
+# MY TRACKER ⚙️🧠  
 
-## 🚀 Features
-
-- **Task Management** - Smart todo system with categories, priorities, and deadlines
-- **AI Insights** - Intelligent productivity analysis and personalized suggestions
-- **Focus Mode** - Distraction-free deep work sessions with ambient sounds
-- **Habit Tracker** - Visual habit formation with streak tracking
-- **Quick Capture** - Instant thought and idea capture system
-- **Spaced Repetition** - Automated task review scheduling
-- **Progress Analytics** - Comprehensive productivity metrics and charts
-- **Cloud Sync** - Access your data from anywhere in the world
-- **Dark/Light Mode** - Beautiful themes for any preference
-
-## 🛠 Tech Stack
-
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Deployment**: Vercel
-- **Charts**: Recharts
-- **UI Components**: Radix UI + shadcn/ui
-
-## 📦 Deployment Guide
-
-### 1. Database Setup (Supabase)
-
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor and run the `scripts/create-database.sql` file
-3. Copy your project URL and anon key from Settings > API
-
-### 2. Environment Variables
-
-Create a `.env.local` file:
-
-\`\`\`bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_APP_URL=https://your-app-domain.vercel.app
-\`\`\`
-
-### 3. Deploy to Vercel
-
-1. Push your code to GitHub
-2. Connect your repository to [Vercel](https://vercel.com)
-3. Add the environment variables in Vercel dashboard
-4. Deploy!
-
-### 4. Data Migration
-
-If you have existing local data:
-1. Sign up/sign in to your deployed app
-2. Use the migration tool to transfer localStorage data to the cloud
-3. Export a backup before migration (recommended)
-
-## 🔧 Local Development
-
-\`\`\`bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-\`\`\`
-
-## 📊 Database Schema
-
-The app uses 8 main tables:
-- `users` - User authentication
-- `todos` - Task management
-- `revisions` - Spaced repetition
-- `focus_sessions` - Deep work tracking
-- `habits` - Habit formation
-- `habit_completions` - Daily habit tracking
-- `quick_notes` - Instant capture
-- `user_preferences` - Settings and themes
-
-## 🔐 Security
-
-- Row Level Security (RLS) enabled on all tables
-- User data is completely isolated
-- Secure authentication with Supabase Auth
-- Environment variables for sensitive data
-
-## 🌍 Global Access
-
-Once deployed, your ProductiveMe dashboard will be accessible from anywhere in the world with:
-- Real-time data synchronization
-- Offline-first design (coming soon)
-- Cross-device compatibility
-- Secure cloud backup
-
-## 📱 Mobile Support
-
-Fully responsive design works perfectly on:
-- Desktop computers
-- Tablets
-- Mobile phones
-- Any screen size
+**MY-TRACKER** is a productivity-boosting web app built with **Next.js**, **TypeScript**, and **Tailwind CSS**. It empowers users with features like task management, habit tracking, AI insights, focus mode, and quick notes – all wrapped in a beautifully themed interface with full modularity.
 
 ---
 
-Built with ❤️ for developers who want to stay productive anywhere in the world.
+---
+
+## 📸 Screenshots  
+
+> ![](https://link.to/screenshot1.png)  
+> ![](https://link.to/screenshot2.png)  
+
+---
+
+## 📂 Project Structure  
+
+```
+
+productive-me/
+├── app/                         # App routing & global styles
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── components/                 # Modular UI and logic components
+│   ├── auth/                   # (Optional) Auth logic or UI
+│   └── ui/
+│       ├── ai-insights.tsx
+│       ├── data-migration.tsx
+│       ├── focus-mode.tsx
+│       ├── habit-tracker.tsx
+│       ├── progress-tracker.tsx
+│       ├── quick-capture.tsx
+│       ├── theme-provider.tsx
+│       ├── today-toolkit.tsx
+│       └── todo-manager.tsx
+│
+├── hooks/                      # Custom React hooks
+├── lib/                        # Utility functions or libs
+├── public/                     # Static assets
+├── scripts/                    # Build/setup scripts
+├── styles/                     # Custom styles
+│
+├── .gitignore
+├── next.config.mjs
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.mjs
+├── tailwind.config.ts
+├── tsconfig.json
+└── README.md
+
+````
+
+---
+
+## 🚀 Features  
+
+- ✅ **Modular UI Components** – Designed for reusability and separation of concerns  
+- 🧠 **AI Insights** – Smart recommendations for productivity improvements  
+- 🧘‍♂️ **Focus Mode** – Reduce distractions and stay on track  
+- 🗓️ **Habit Tracker** – Build and reinforce good habits  
+- 📝 **Quick Capture** – Instantly log thoughts or tasks  
+- 📊 **Progress Tracker** – Visualize your achievements  
+- 🌈 **Dark/Light Theme Toggle** – User-friendly theming via `theme-provider.tsx`  
+
+---
+
+## ⚙️ Tech Stack  
+
+### Frontend:  
+- **Next.js (App Router)**  
+- **TypeScript**  
+- **Tailwind CSS**  
+- **Custom Hooks & Components**  
+
+### Tooling:  
+- **pnpm** (Fast, disk-efficient package manager)  
+- **PostCSS**  
+- **Modular file structure for scalability**  
+
+---
+
+## 🛠️ Getting Started  
+
+### 1. Clone the Repository  
+
+```bash
+git clone https://github.com/your-username/productive-me.git
+cd productive-me
+````
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Run the Development Server
+
+```bash
+pnpm dev
+```
+
+> 🚀 App will be live on: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🧠 Future Improvements
+
+* 🔐 User Authentication & Profiles
+* 📱 Mobile App with React Native
+* 📅 Calendar & Scheduling Integration
+* 🧩 Plugin Support (Pomodoro, Journal, etc.)
+* ☁️ Cloud sync for cross-device continuity
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!
+For major changes, open an issue first to discuss what you’d like to improve or contribute.
+
+---
+
+## 💌 Contact
+
+👨‍💻 **Developer:** MD. Tanvir Ahmed Akash
+📧 **Email:** [tanvir0ah0akash@gmail.com](mailto:tanvir0ah0akash@gmail.com)
+🌐 **GitHub:** [Akash-code-0-1](https://github.com/Akash-code-0-1)
+💼 **LinkedIn:** [MD. Tanvir Ahmed Akash](https://www.linkedin.com/in/md-tanvir-ahmed-akash-8ba50b2b9/)
+
+---
+
+🌟 **Found it useful? Drop a ⭐ on GitHub and help others stay productive!**
+
