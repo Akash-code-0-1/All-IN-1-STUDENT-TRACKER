@@ -24,7 +24,7 @@ interface Todo {
   createdAt: string
 }
 
-const categories = ["Development", "Learning", "Meeting", "Bug Fix", "Feature", "Review", "Personal"]
+const categories = ["Development", "Academic","Interview Preparation","Soft Skill","Project Work","Learning", "Meeting", "Bug Fix", "Research Work", "Review", "Personal"]
 const priorities = [
   {
     value: "low",
