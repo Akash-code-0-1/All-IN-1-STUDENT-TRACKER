@@ -454,6 +454,7 @@ export function ProgressTracker() {
                         dataKey="value"
                         label={({ name, percentage }) => `${name}: ${percentage}%`}
                         labelLine={false}
+                        fontSize={12}
                       >
                         {categoryData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
