@@ -444,8 +444,8 @@ export function AIInsights() {
   const getTodayString = () => new Date().toISOString().split("T")[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto p-4 lg:p-8 space-y-8">
+    <div className="w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="container p-4 lg:p-8 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg">
@@ -1070,6 +1070,8 @@ export function AIInsights() {
               </CardContent>
             </Card>
           </div>
+
+          
         </div>
       </div>
     </div>
