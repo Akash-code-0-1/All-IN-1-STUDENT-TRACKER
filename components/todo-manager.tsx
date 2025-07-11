@@ -1593,7 +1593,7 @@ export function TodoManager() {
               <CheckSquare className="h-4 w-4 text-emerald-600" />
               <h3 className="font-semibold text-sm">Completed Tasks ({completedTodos.length})</h3>
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-96 overflow-y-auto">
               {completedTodos.map((todo) => (
                 <TodoItem key={todo.id} todo={todo} onToggle={toggleTodo} onEdit={editTodo} onDelete={deleteTodo} />
               ))}
