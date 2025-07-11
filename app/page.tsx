@@ -201,7 +201,7 @@ export default function ProductiveMe() {
           <TabsContent value="insights" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <AIInsights />
-              <DomainScheduler/>
+              {/* <DomainScheduler/> */}
             </div>
           </TabsContent>
 
@@ -221,7 +221,7 @@ export default function ProductiveMe() {
           <TabsContent value="capture" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <DomainScheduler/>
-              <AIInsights />
+              {/* <AIInsights /> */}
             </div>
           </TabsContent>
         </Tabs>
