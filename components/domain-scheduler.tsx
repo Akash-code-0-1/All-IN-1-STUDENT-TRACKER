@@ -186,6 +186,22 @@ export function DomainScheduler() {
     setIsDomainDialogOpen(false)
   }
 
+  const updateDomain = () => {
+    if (!editingDomain || !newDomain.name.trim()) return
+
+    setDomains((prev) => prev.map((domain) => (domain.id === editingDomain.id ? { ...domain, ...newDomain } : domain)))
+
+    setEditingDomain(null)
+    setNewDomain({ name: "", description: "", color: "bg-blue-500", targetTasksPerWeek: 5 })
+    setIsDomainDialogOpen(false)
+  }
+
+  const deleteDomain = (domainId: string) => {
+    setDomains((prev) => prev.filter((d) => d.id !== domainId))
+    setDomainTasks((prev) => prev.filter((task) => task.domainId !== domainId))
+    if (selectedDomain === domainId) setSelectedDomain("all")
+  }
+
   const addTemplate = () => {
     if (!newTemplate.name.trim()) return
 
@@ -244,6 +260,46 @@ export function DomainScheduler() {
 
     setNewTask({ title: "", description: "", scheduledDate: "", canConvertToTodo: false, estimatedHours: 1 })
     setIsTaskDialogOpen(false)
+  }
+
+  const updateTask = () => {
+    if (!editingTask || !newTask.title.trim()) return
+
+    const updatedTask = {
+      ...editingTask,
+      title: newTask.title,
+      description: newTask.description,
+      scheduledDate: newTask.scheduledDate,
+      canConvertToTodo: newTask.canConvertToTodo,
+      estimatedHours: newTask.estimatedHours,
+    }
+
+    setDomainTasks((prev) => prev.map((task) => (task.id === editingTask.id ? updatedTask : task)))
+
+    // If user enabled convert to todo and it wasn't enabled before
+    if (newTask.canConvertToTodo && !editingTask.canConvertToTodo) {
+      setTimeout(() => convertTaskToTodo(updatedTask), 100)
+    }
+
+    setEditingTask(null)
+    setNewTask({ title: "", description: "", scheduledDate: "", canConvertToTodo: false, estimatedHours: 1 })
+    setIsTaskDialogOpen(false)
+  }
+
+  const editTask = (task: DomainTask) => {
+    setEditingTask(task)
+    setNewTask({
+      title: task.title,
+      description: task.description,
+      scheduledDate: task.scheduledDate,
+      canConvertToTodo: task.canConvertToTodo || false,
+      estimatedHours: task.estimatedHours || 1,
+    })
+    setIsTaskDialogOpen(true)
+  }
+
+  const deleteTask = (taskId: string) => {
+    setDomainTasks((prev) => prev.filter((task) => task.id !== taskId))
   }
 
   const toggleTaskCompletion = (taskId: string) => {
@@ -427,7 +483,7 @@ export function DomainScheduler() {
                               ))}
                             </div>
                           </div>
-                          <Button onClick={addDomain} className="w-full">
+                          <Button onClick={editingDomain ? updateDomain : addDomain} className="w-full">
                             {editingDomain ? "Update Domain" : "Create Domain"}
                           </Button>
                         </div>
@@ -520,8 +576,8 @@ export function DomainScheduler() {
                               Add to Todo Manager (can be scheduled and managed as regular task)
                             </Label>
                           </div>
-                          <Button onClick={addTask} className="w-full">
-                            Schedule Task
+                          <Button onClick={editingTask ? updateTask : addTask} className="w-full">
+                            {editingTask ? "Update Task" : "Schedule Task"}
                           </Button>
                         </div>
                       </DialogContent>
@@ -569,7 +625,7 @@ export function DomainScheduler() {
                         return (
                           <div
                             key={domain.id}
-                            className={`relative overflow-hidden rounded-2xl border ${colorConfig?.light} ${colorConfig?.border} p-4 hover:shadow-lg transition-all duration-300`}
+                            className={`group relative overflow-hidden rounded-2xl border ${colorConfig?.light} ${colorConfig?.border} p-4 hover:shadow-lg transition-all duration-300`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex items-center gap-3">
@@ -611,11 +667,7 @@ export function DomainScheduler() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={() => {
-                                    setDomains((prev) => prev.filter((d) => d.id !== domain.id))
-                                    setDomainTasks((prev) => prev.filter((task) => task.domainId !== domain.id))
-                                    if (selectedDomain === domain.id) setSelectedDomain("all")
-                                  }}
+                                  onClick={() => deleteDomain(domain.id)}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -662,6 +714,8 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
+                              onEdit={editTask}
+                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -683,6 +737,8 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
+                              onEdit={editTask}
+                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -703,6 +759,8 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
+                              onEdit={editTask}
+                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -997,7 +1055,7 @@ export function DomainScheduler() {
                       {taskTemplates.map((template) => (
                         <div
                           key={template.id}
-                          className="rounded-2xl border bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 p-4 hover:shadow-lg transition-all duration-300"
+                          className="group rounded-2xl border bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 p-4 hover:shadow-lg transition-all duration-300"
                         >
                           <div className="flex items-start justify-between mb-3">
                             <div>
@@ -1238,17 +1296,16 @@ export function DomainScheduler() {
   )
 }
 
-function TaskItem({
-  task,
-  domain,
-  onToggle,
-  convertTaskToTodo,
-}: {
+interface TaskItemProps {
   task: DomainTask
   domain: Domain
-  onToggle: (id: string) => void
+  onToggle: (taskId: string) => void
+  onEdit: (task: DomainTask) => void
+  onDelete: (taskId: string) => void
   convertTaskToTodo: (task: DomainTask) => void
-}) {
+}
+
+function TaskItem({ task, domain, onToggle, onEdit, onDelete, convertTaskToTodo }: TaskItemProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -1280,6 +1337,19 @@ function TaskItem({
             <h4 className={`font-medium leading-tight ${task.completed ? "line-through text-muted-foreground" : ""}`}>
               {task.title}
             </h4>
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onEdit(task)}>
+                <Edit className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-destructive hover:text-destructive"
+                onClick={() => onDelete(task.id)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
 
           {task.description && (
