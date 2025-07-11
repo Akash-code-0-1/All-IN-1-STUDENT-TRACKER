@@ -7,7 +7,7 @@ import { TodayToolkit } from "@/components/today-toolkit"
 import { AIInsights } from "@/components/ai-insights"
 import { FocusMode } from "@/components/focus-mode"
 import { HabitTracker } from "@/components/habit-tracker"
-import { QuickCapture } from "@/components/quick-capture"
+import { DomainScheduler } from "../components/domain-scheduler"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Moon, Sun, Menu, Code2, Terminal, Brain, Eye, Repeat, Zap } from "lucide-react"
@@ -175,7 +175,7 @@ export default function ProductiveMe() {
             </TabsTrigger>
             <TabsTrigger value="capture" className="data-[state=active]:bg-background">
               <Zap className="h-4 w-4 mr-2" />
-              Capture
+              Domain Scheduler
             </TabsTrigger>
           </TabsList>
 
@@ -201,7 +201,7 @@ export default function ProductiveMe() {
           <TabsContent value="insights" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <AIInsights />
-              <QuickCapture />
+              <DomainScheduler/>
             </div>
           </TabsContent>
 
@@ -220,7 +220,7 @@ export default function ProductiveMe() {
 
           <TabsContent value="capture" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <QuickCapture />
+              <DomainScheduler/>
               <AIInsights />
             </div>
           </TabsContent>
