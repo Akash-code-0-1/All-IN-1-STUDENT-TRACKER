@@ -25,6 +25,7 @@ import {
   Clock,
   CheckCircle2,
   Settings,
+  ArrowRight,
 } from "lucide-react"
 
 interface Domain {
@@ -103,76 +104,6 @@ const domainColors = [
     gradient: "from-cyan-500 to-cyan-600",
   },
 ]
-
-interface TaskItemProps {
-  task: DomainTask
-  domain: Domain
-  onToggle: (taskId: string) => void
-  onEdit: (task: DomainTask) => void
-  onDelete: (taskId: string) => void
-  convertTaskToTodo: (task: DomainTask) => void
-}
-
-function TaskItem({ task, domain, onToggle, onEdit, onDelete, convertTaskToTodo }: TaskItemProps) {
-  const colorConfig = domainColors.find((c) => c.value === domain.color)
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    return `${months[date.getMonth()]} ${date.getDate()}`
-  }
-
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl border ${colorConfig?.light} ${colorConfig?.border} p-4 hover:shadow-lg transition-all duration-300`}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${domain.color}`} />
-          <div>
-            <h5 className={`font-medium text-sm ${task.completed ? "line-through opacity-60" : ""}`}>{task.title}</h5>
-            {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
-            <div className="flex gap-2 mt-2">
-              <Badge variant="secondary" className="text-xs">
-                <Clock className="w-3 h-3 mr-1" />
-                {task.estimatedHours}h
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {formatDate(task.scheduledDate)}
-              </Badge>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onToggle(task.id)}
-          >
-            {task.completed ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <Clock className="h-3 w-3" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onEdit(task)}
-          >
-            <Edit className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onDelete(task.id)}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function DomainScheduler() {
   const [domains, setDomains] = useState<Domain[]>([])
@@ -395,56 +326,6 @@ export function DomainScheduler() {
   const upcomingTasks = filteredTasks.filter((task) => task.scheduledDate > getTodayString())
   const completedTasks = filteredTasks.filter((task) => task.completed)
 
-  const editTask = (task: DomainTask) => {
-    setEditingTask(task)
-    setNewTask({
-      title: task.title,
-      description: task.description,
-      scheduledDate: task.scheduledDate,
-      canConvertToTodo: task.canConvertToTodo || false,
-      estimatedHours: task.estimatedHours || 1,
-    })
-    setIsTaskDialogOpen(true)
-  }
-
-  const updateTask = () => {
-    if (!editingTask || !newTask.title.trim()) return
-
-    const updatedTask = {
-      ...editingTask,
-      title: newTask.title,
-      description: newTask.description,
-      scheduledDate: newTask.scheduledDate,
-      canConvertToTodo: newTask.canConvertToTodo,
-      estimatedHours: newTask.estimatedHours,
-    }
-
-    setDomainTasks((prev) => prev.map((task) => (task.id === editingTask.id ? updatedTask : task)))
-
-    // If user enabled convert to todo and it wasn't enabled before
-    if (newTask.canConvertToTodo && !editingTask.canConvertToTodo) {
-      setTimeout(() => convertTaskToTodo(updatedTask), 100)
-    }
-
-    setEditingTask(null)
-    setNewTask({ title: "", description: "", scheduledDate: "", canConvertToTodo: false, estimatedHours: 1 })
-    setIsTaskDialogOpen(false)
-  }
-
-  const deleteTask = (taskId: string) => {
-    setDomainTasks((prev) => prev.filter((task) => task.id !== taskId))
-  }
-
-  const updateDomain = () => {
-    if (!editingDomain || !newDomain.name.trim()) return
-
-    setDomains((prev) => prev.map((domain) => (domain.id === editingDomain.id ? { ...domain, ...newDomain } : domain)))
-
-    setEditingDomain(null)
-    setNewDomain({ name: "", description: "", color: "bg-blue-500", targetTasksPerWeek: 5 })
-    setIsDomainDialogOpen(false)
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto p-4 lg:p-8 space-y-8">
@@ -546,7 +427,7 @@ export function DomainScheduler() {
                               ))}
                             </div>
                           </div>
-                          <Button onClick={editingDomain ? updateDomain : addDomain} className="w-full">
+                          <Button onClick={addDomain} className="w-full">
                             {editingDomain ? "Update Domain" : "Create Domain"}
                           </Button>
                         </div>
@@ -639,8 +520,8 @@ export function DomainScheduler() {
                               Add to Todo Manager (can be scheduled and managed as regular task)
                             </Label>
                           </div>
-                          <Button onClick={editingTask ? updateTask : addTask} className="w-full">
-                            {editingTask ? "Update Task" : "Schedule Task"}
+                          <Button onClick={addTask} className="w-full">
+                            Schedule Task
                           </Button>
                         </div>
                       </DialogContent>
@@ -688,7 +569,7 @@ export function DomainScheduler() {
                         return (
                           <div
                             key={domain.id}
-                            className={`group relative overflow-hidden rounded-2xl border ${colorConfig?.light} ${colorConfig?.border} p-4 hover:shadow-lg transition-all duration-300`}
+                            className={`relative overflow-hidden rounded-2xl border ${colorConfig?.light} ${colorConfig?.border} p-4 hover:shadow-lg transition-all duration-300`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex items-center gap-3">
@@ -781,8 +662,6 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
-                              onEdit={editTask}
-                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -804,8 +683,6 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
-                              onEdit={editTask}
-                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -826,8 +703,6 @@ export function DomainScheduler() {
                               task={task}
                               domain={selectedDomainData}
                               onToggle={toggleTaskCompletion}
-                              onEdit={editTask}
-                              onDelete={deleteTask}
                               convertTaskToTodo={convertTaskToTodo}
                             />
                           ))}
@@ -1215,12 +1090,39 @@ export function DomainScheduler() {
                                   }
                                   tasks.push(task)
                                 }
-
                                 setDomainTasks((prev) => [...tasks, ...prev])
                               }}
+                              className="text-xs"
                             >
-                              <Zap className="h-3 w-3 mr-2" />
-                              Schedule 3 Days
+                              3 Tasks
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const tasks = []
+                                const today = new Date()
+                                for (let i = 0; i < 5; i++) {
+                                  const scheduleDate = new Date(today)
+                                  scheduleDate.setDate(today.getDate() + i)
+                                  const task: DomainTask = {
+                                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + i,
+                                    domainId: selectedDomain,
+                                    title: `${selectedDomainData.name} Task ${i + 1}`,
+                                    description: `Auto-generated task for ${selectedDomainData.name}`,
+                                    scheduledDate: scheduleDate.toISOString().split("T")[0],
+                                    completed: false,
+                                    createdAt: new Date().toISOString(),
+                                    canConvertToTodo: false,
+                                    estimatedHours: 1,
+                                  }
+                                  tasks.push(task)
+                                }
+                                setDomainTasks((prev) => [...tasks, ...prev])
+                              }}
+                              className="text-xs"
+                            >
+                              5 Tasks
                             </Button>
                             <Button
                               variant="outline"
@@ -1246,54 +1148,180 @@ export function DomainScheduler() {
                                 }
                                 setDomainTasks((prev) => [...tasks, ...prev])
                               }}
+                              className="text-xs"
                             >
-                              <Zap className="h-3 w-3 mr-2" />
-                              Schedule 7 Days
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const tasks = []
-                                const today = new Date()
-                                for (let i = 0; i < 14; i++) {
-                                  const scheduleDate = new Date(today)
-                                  scheduleDate.setDate(today.getDate() + i)
-                                  const task: DomainTask = {
-                                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + i,
-                                    domainId: selectedDomain,
-                                    title: `${selectedDomainData.name} Task ${i + 1}`,
-                                    description: `Auto-generated task for ${selectedDomainData.name}`,
-                                    scheduledDate: scheduleDate.toISOString().split("T")[0],
-                                    completed: false,
-                                    createdAt: new Date().toISOString(),
-                                    canConvertToTodo: false,
-                                    estimatedHours: 1,
-                                  }
-                                  tasks.push(task)
-                                }
-                                setDomainTasks((prev) => [...tasks, ...prev])
-                              }}
-                            >
-                              <Zap className="h-3 w-3 mr-2" />
-                              Schedule 14 Days
+                              Week
                             </Button>
                           </div>
+                        </div>
+
+                        {/* Smart Suggestions */}
+                        <div className="rounded-2xl border bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 p-6">
+                          <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
+                            <Target className="h-4 w-4" />
+                            Smart Suggestions
+                          </h4>
+                          {(() => {
+                            const analytics = getDomainAnalytics(selectedDomain)
+                            const suggestions = []
+
+                            if (analytics.weeklyProgress < 50) {
+                              suggestions.push({
+                                text: "You're behind on weekly targets. Consider scheduling smaller, more manageable tasks.",
+                                action: "Schedule Quick Tasks",
+                                variant: "outline" as const,
+                              })
+                            }
+
+                            if (analytics.completionRate > 80) {
+                              suggestions.push({
+                                text: "Excellent completion rate! Consider increasing your weekly targets for more challenge.",
+                                action: "Update Target",
+                                variant: "default" as const,
+                              })
+                            }
+
+                            if (analytics.totalTasks === 0) {
+                              suggestions.push({
+                                text: "No tasks in this domain yet. Start by creating your first task or using a template.",
+                                action: "Create Task",
+                                variant: "outline" as const,
+                              })
+                            }
+
+                            if (suggestions.length === 0) {
+                              suggestions.push({
+                                text: "Everything looks great! Your domain is well-organized and on track.",
+                                action: "View Analytics",
+                                variant: "outline" as const,
+                              })
+                            }
+
+                            return (
+                              <div className="space-y-3">
+                                {suggestions.map((suggestion, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-start justify-between p-4 rounded-xl bg-muted/50"
+                                  >
+                                    <p className="text-xs text-muted-foreground flex-1 leading-relaxed">
+                                      {suggestion.text}
+                                    </p>
+                                    <Button variant={suggestion.variant} size="sm" className="text-xs ml-3 shrink-0">
+                                      {suggestion.action}
+                                      <ArrowRight className="h-3 w-3 ml-1" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          })()}
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-16">
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-cyan-100 to-blue-100 flex items-center justify-center">
-                          <Zap className="h-10 w-10 text-cyan-600" />
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-purple-100 to-indigo-100 flex items-center justify-center">
+                          <Zap className="h-10 w-10 text-purple-600" />
                         </div>
                         <p className="text-lg font-medium text-gray-900 dark:text-gray-100">Select a domain</p>
-                        <p className="text-sm text-muted-foreground">Choose a domain to enable smart automations</p>
+                        <p className="text-sm text-muted-foreground">Choose a domain to access automation features</p>
                       </div>
                     )}
                   </div>
                 )}
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TaskItem({
+  task,
+  domain,
+  onToggle,
+  convertTaskToTodo,
+}: {
+  task: DomainTask
+  domain: Domain
+  onToggle: (id: string) => void
+  convertTaskToTodo: (task: DomainTask) => void
+}) {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return `${months[date.getMonth()]} ${date.getDate()}`
+  }
+
+  const isOverdue = task.scheduledDate < new Date().toISOString().split("T")[0] && !task.completed
+  const colorConfig = domainColors.find((c) => c.value === domain.color)
+
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg ${
+        task.completed
+          ? "bg-muted/30 opacity-75 border-muted"
+          : isOverdue
+            ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
+            : `${colorConfig?.light} ${colorConfig?.border}`
+      } p-4`}
+    >
+      <div className="flex items-start gap-4">
+        <input
+          type="checkbox"
+          checked={task.completed}
+          onChange={() => onToggle(task.id)}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h4 className={`font-medium leading-tight ${task.completed ? "line-through text-muted-foreground" : ""}`}>
+              {task.title}
+            </h4>
+          </div>
+
+          {task.description && (
+            <p className={`text-sm text-muted-foreground mb-3 ${task.completed ? "line-through" : ""}`}>
+              {task.description}
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={isOverdue ? "destructive" : "outline"} className="text-xs font-medium">
+              <Calendar className="w-3 h-3 mr-1" />
+              {formatDate(task.scheduledDate)}
+            </Badge>
+            {task.estimatedHours && (
+              <Badge variant="secondary" className="text-xs font-medium">
+                <Clock className="w-3 h-3 mr-1" />
+                {task.estimatedHours}h
+              </Badge>
+            )}
+            {task.completedAt && (
+              <Badge variant="secondary" className="text-xs font-medium text-emerald-600">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Completed
+              </Badge>
+            )}
+            {task.canConvertToTodo && (
+              <Badge variant="outline" className="text-xs font-medium text-blue-600 border-blue-300">
+                <Target className="w-3 h-3 mr-1" />
+                Todo Ready
+              </Badge>
+            )}
+            {task.canConvertToTodo && !task.completed && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => convertTaskToTodo(task)}
+                className="text-xs bg-transparent"
+              >
+                <ArrowRight className="h-3 w-3 mr-1" />
+                Add to Todos
+              </Button>
+            )}
           </div>
         </div>
       </div>
