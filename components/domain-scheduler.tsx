@@ -294,7 +294,7 @@ export function DomainScheduler() {
         window.dispatchEvent(new CustomEvent("todosUpdated"))
 
         // Show confirmation
-        alert(`Task "${task.title}" has been added to Todo Manager!`)
+        // alert(`Task "${task.title}" has been added to Todo Manager!`)
     }
 
     const convertAllDomainTasksToTodos = (domainId: string) => {
@@ -306,9 +306,9 @@ export function DomainScheduler() {
             convertTaskToTodo(task)
         })
 
-        if (tasksToConvert.length > 0) {
-            alert(`Converted ${tasksToConvert.length} tasks to Todo Manager`)
-        }
+        // if (tasksToConvert.length > 0) {
+        //     alert(`Converted ${tasksToConvert.length} tasks to Todo Manager`)
+        // }
     }
 
     return (
