@@ -5,7 +5,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Brain, TrendingUp, AlertCircle, Target, Zap, Calendar, Trophy, Flame, BarChart3, Timer } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import {
+  Brain,
+  TrendingUp,
+  AlertCircle,
+  Target,
+  Zap,
+  Trophy,
+  Flame,
+  BarChart3,
+  Activity,
+  Clock,
+  CheckCircle2,
+  Plus,
+  Trash2,
+} from "lucide-react"
 
 interface Todo {
   id: string
@@ -16,6 +34,29 @@ interface Todo {
   completedAt?: string
   createdAt: string
   deadline?: string
+}
+
+interface Habit {
+  id: string
+  name: string
+  description: string
+  targetFrequency: number // times per week
+  category: string
+  color: string
+  createdAt: string
+  completions: { date: string; completed: boolean }[]
+}
+
+interface Goal {
+  id: string
+  title: string
+  description: string
+  targetValue: number
+  currentValue: number
+  unit: string
+  deadline: string
+  category: string
+  createdAt: string
 }
 
 interface Insight {
@@ -42,23 +83,54 @@ interface ProductivityMetrics {
   upcomingDeadlines: number
 }
 
+const habitCategories = ["Health", "Learning", "Productivity", "Social", "Personal", "Fitness", "Mindfulness"]
+const habitColors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-pink-500", "bg-cyan-500"]
+
 export function AIInsights() {
   const [insights, setInsights] = useState<Insight[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
+  const [habits, setHabits] = useState<Habit[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
   const [metrics, setMetrics] = useState<ProductivityMetrics | null>(null)
+  const [activeTab, setActiveTab] = useState<"habits" | "goals" | "analytics">("habits")
+
+  // Dialog states
+  const [isHabitDialogOpen, setIsHabitDialogOpen] = useState(false)
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false)
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
+
+  // Form states
+  const [newHabit, setNewHabit] = useState({
+    name: "",
+    description: "",
+    targetFrequency: 7,
+    category: "Health",
+    color: "bg-blue-500",
+  })
+
+  const [newGoal, setNewGoal] = useState({
+    title: "",
+    description: "",
+    targetValue: 10,
+    unit: "tasks",
+    deadline: "",
+    category: "Productivity",
+  })
 
   useEffect(() => {
-    loadTodos()
+    loadData()
 
     const handleTodosUpdate = () => {
-      loadTodos()
+      loadData()
     }
 
     window.addEventListener("todosUpdated", handleTodosUpdate)
     return () => window.removeEventListener("todosUpdated", handleTodosUpdate)
   }, [])
 
-  const loadTodos = () => {
+  const loadData = () => {
+    // Load todos
     const savedTodos = localStorage.getItem("productive-me-todos")
     if (savedTodos) {
       const parsedTodos = JSON.parse(savedTodos)
@@ -66,6 +138,18 @@ export function AIInsights() {
       const calculatedMetrics = calculateMetrics(parsedTodos)
       setMetrics(calculatedMetrics)
       generateAdvancedInsights(parsedTodos, calculatedMetrics)
+    }
+
+    // Load habits
+    const savedHabits = localStorage.getItem("productive-me-habits")
+    if (savedHabits) {
+      setHabits(JSON.parse(savedHabits))
+    }
+
+    // Load goals
+    const savedGoals = localStorage.getItem("productive-me-goals")
+    if (savedGoals) {
+      setGoals(JSON.parse(savedGoals))
     }
   }
 
@@ -289,138 +373,145 @@ export function AIInsights() {
       })
     }
 
-    // 5. Category Mastery Insights
-    if (metrics.mostProductiveCategory) {
-      const categoryStats = todos.reduce(
-        (acc, todo) => {
-          if (!acc[todo.category]) acc[todo.category] = { total: 0, completed: 0 }
-          acc[todo.category].total++
-          if (todo.completed) acc[todo.category].completed++
-          return acc
-        },
-        {} as Record<string, { total: number; completed: number }>,
-      )
+    setInsights(newInsights.slice(0, 6)) // Limit to 6 insights for better layout
+  }
 
-      const categoryRate =
-        (categoryStats[metrics.mostProductiveCategory]?.completed /
-          categoryStats[metrics.mostProductiveCategory]?.total) *
-          100 || 0
+  // Habit Management Functions
+  const addHabit = () => {
+    if (!newHabit.name.trim()) return
 
-      if (categoryRate > 85) {
-        newInsights.push({
-          id: "category-mastery",
-          type: "pattern",
-          title: "Category Mastery Detected! 🎯",
-          description: `${categoryRate.toFixed(1)}% success rate in ${metrics.mostProductiveCategory}. This is your strength zone!`,
-          action: "Schedule more tasks in this category",
-          priority: "medium",
-          icon: Target,
-          value: categoryRate,
-        })
+    const habit: Habit = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      name: newHabit.name,
+      description: newHabit.description,
+      targetFrequency: newHabit.targetFrequency,
+      category: newHabit.category,
+      color: newHabit.color,
+      createdAt: new Date().toISOString(),
+      completions: [],
+    }
+
+    const updatedHabits = [...habits, habit]
+    setHabits(updatedHabits)
+    localStorage.setItem("productive-me-habits", JSON.stringify(updatedHabits))
+
+    setNewHabit({
+      name: "",
+      description: "",
+      targetFrequency: 7,
+      category: "Health",
+      color: "bg-blue-500",
+    })
+    setIsHabitDialogOpen(false)
+  }
+
+  const toggleHabitCompletion = (habitId: string, date: string) => {
+    const updatedHabits = habits.map((habit) => {
+      if (habit.id === habitId) {
+        const existingCompletion = habit.completions.find((c) => c.date === date)
+        if (existingCompletion) {
+          return {
+            ...habit,
+            completions: habit.completions.map((c) => (c.date === date ? { ...c, completed: !c.completed } : c)),
+          }
+        } else {
+          return {
+            ...habit,
+            completions: [...habit.completions, { date, completed: true }],
+          }
+        }
+      }
+      return habit
+    })
+
+    setHabits(updatedHabits)
+    localStorage.setItem("productive-me-habits", JSON.stringify(updatedHabits))
+  }
+
+  const getHabitStreak = (habit: Habit) => {
+    const today = new Date().toISOString().split("T")[0]
+    let streak = 0
+    const currentDate = new Date()
+
+    while (true) {
+      const dateStr = currentDate.toISOString().split("T")[0]
+      const completion = habit.completions.find((c) => c.date === dateStr)
+
+      if (completion && completion.completed) {
+        streak++
+        currentDate.setDate(currentDate.getDate() - 1)
+      } else {
+        break
       }
     }
 
-    // 6. Deadline Management Insights
-    if (metrics.overdueCount > 0) {
-      newInsights.push({
-        id: "overdue-alert",
-        type: "warning",
-        title: "Overdue Tasks Alert! ⚠️",
-        description: `${metrics.overdueCount} task${metrics.overdueCount > 1 ? "s are" : " is"} overdue. Immediate attention needed.`,
-        action: "Review and reschedule overdue tasks",
-        priority: "high",
-        icon: AlertCircle,
-        value: metrics.overdueCount,
-      })
+    return streak
+  }
+
+  const getWeeklyHabitProgress = (habit: Habit) => {
+    const today = new Date()
+    const weekStart = new Date(today.getTime() - today.getDay() * 24 * 60 * 60 * 1000)
+
+    let completedThisWeek = 0
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart.getTime() + i * 24 * 60 * 60 * 1000)
+      const dateStr = date.toISOString().split("T")[0]
+      const completion = habit.completions.find((c) => c.date === dateStr && c.completed)
+      if (completion) completedThisWeek++
     }
 
-    if (metrics.upcomingDeadlines > 0) {
-      newInsights.push({
-        id: "upcoming-deadlines",
-        type: "suggestion",
-        title: "Upcoming Deadlines",
-        description: `${metrics.upcomingDeadlines} task${metrics.upcomingDeadlines > 1 ? "s have" : " has"} deadline${metrics.upcomingDeadlines > 1 ? "s" : ""} in the next 3 days.`,
-        action: "Prioritize deadline-sensitive tasks",
-        priority: "medium",
-        icon: Calendar,
-        value: metrics.upcomingDeadlines,
-      })
+    return (completedThisWeek / habit.targetFrequency) * 100
+  }
+
+  // Goal Management Functions
+  const addGoal = () => {
+    if (!newGoal.title.trim()) return
+
+    const goal: Goal = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      title: newGoal.title,
+      description: newGoal.description,
+      targetValue: newGoal.targetValue,
+      currentValue: 0,
+      unit: newGoal.unit,
+      deadline: newGoal.deadline,
+      category: newGoal.category,
+      createdAt: new Date().toISOString(),
     }
 
-    // 7. Priority Balance Insights
-    const totalTasks =
-      metrics.priorityDistribution.high + metrics.priorityDistribution.medium + metrics.priorityDistribution.low
-    const highPriorityRatio = totalTasks > 0 ? (metrics.priorityDistribution.high / totalTasks) * 100 : 0
+    const updatedGoals = [...goals, goal]
+    setGoals(updatedGoals)
+    localStorage.setItem("productive-me-goals", JSON.stringify(updatedGoals))
 
-    if (highPriorityRatio > 60) {
-      newInsights.push({
-        id: "priority-overload",
-        type: "warning",
-        title: "High Priority Overload",
-        description: `${highPriorityRatio.toFixed(1)}% of tasks are high priority. This might cause stress and decision fatigue.`,
-        action: "Re-evaluate task priorities",
-        priority: "medium",
-        icon: AlertCircle,
-        value: highPriorityRatio,
-      })
-    } else if (highPriorityRatio < 20 && totalTasks > 5) {
-      newInsights.push({
-        id: "priority-balance",
-        type: "optimization",
-        title: "Well-Balanced Priorities",
-        description: `Good priority distribution! ${highPriorityRatio.toFixed(1)}% high priority tasks - sustainable workload.`,
-        priority: "low",
-        icon: Target,
-        value: highPriorityRatio,
-      })
-    }
+    setNewGoal({
+      title: "",
+      description: "",
+      targetValue: 10,
+      unit: "tasks",
+      deadline: "",
+      category: "Productivity",
+    })
+    setIsGoalDialogOpen(false)
+  }
 
-    // 8. Time-based Productivity Suggestions
-    if (currentHour >= 14 && currentHour <= 16 && metrics.weeklyVelocity < 5) {
-      newInsights.push({
-        id: "afternoon-boost",
-        type: "suggestion",
-        title: "Afternoon Productivity Boost",
-        description:
-          "Post-lunch energy dip? Try the 2-minute rule: do any task that takes less than 2 minutes immediately.",
-        action: "Complete 2-3 quick tasks",
-        priority: "medium",
-        icon: Timer,
-      })
-    }
+  const updateGoalProgress = (goalId: string, newValue: number) => {
+    const updatedGoals = goals.map((goal) =>
+      goal.id === goalId ? { ...goal, currentValue: Math.max(0, newValue) } : goal,
+    )
+    setGoals(updatedGoals)
+    localStorage.setItem("productive-me-goals", JSON.stringify(updatedGoals))
+  }
 
-    // 9. Weekend Planning Insight
-    const isWeekend = now.getDay() === 0 || now.getDay() === 6
-    if (isWeekend && metrics.averageTasksPerDay > 3) {
-      newInsights.push({
-        id: "weekend-planning",
-        type: "suggestion",
-        title: "Weekend Planning Opportunity",
-        description: "Great time to plan next week's tasks and review your productivity patterns.",
-        action: "Plan next week's priorities",
-        priority: "low",
-        icon: Calendar,
-      })
-    }
+  const deleteGoal = (goalId: string) => {
+    const updatedGoals = goals.filter((goal) => goal.id !== goalId)
+    setGoals(updatedGoals)
+    localStorage.setItem("productive-me-goals", JSON.stringify(updatedGoals))
+  }
 
-    // 10. Achievement Recognition
-    const recentCompletions = todos.filter(
-      (t) => t.completed && t.completedAt && new Date(t.completedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000,
-    ).length
-
-    if (recentCompletions >= 5) {
-      newInsights.push({
-        id: "daily-champion",
-        type: "achievement",
-        title: "Daily Champion! 🏆",
-        description: `${recentCompletions} tasks completed today! You're crushing your goals.`,
-        priority: "high",
-        icon: Trophy,
-        value: recentCompletions,
-      })
-    }
-
-    setInsights(newInsights.slice(0, 8)) // Limit to 8 most relevant insights
+  const deleteHabit = (habitId: string) => {
+    const updatedHabits = habits.filter((habit) => habit.id !== habitId)
+    setHabits(updatedHabits)
+    localStorage.setItem("productive-me-habits", JSON.stringify(updatedHabits))
   }
 
   const getPriorityColor = (priority: string) => {
@@ -453,97 +544,552 @@ export function AIInsights() {
     }
   }
 
-  return (
-    <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-            <Brain className="h-5 w-5 text-purple-600" />
-          </div>
-          <div>
-            <span className="text-lg font-semibold">AI Productivity Insights</span>
-            <p className="text-sm text-muted-foreground font-normal">Smart analysis & recommendations</p>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Metrics Overview */}
-        {metrics && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-              <div className="text-lg font-bold text-blue-700 dark:text-blue-400">
-                {metrics.completionRate.toFixed(1)}%
-              </div>
-              <div className="text-xs text-blue-600 dark:text-blue-500">Completion Rate</div>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-lg p-3 border border-green-200 dark:border-green-800">
-              <div className="text-lg font-bold text-green-700 dark:text-green-400">{metrics.currentStreak}</div>
-              <div className="text-xs text-green-600 dark:text-green-500">Day Streak</div>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
-              <div className="text-lg font-bold text-purple-700 dark:text-purple-400">{metrics.weeklyVelocity}</div>
-              <div className="text-xs text-purple-600 dark:text-purple-500">Weekly Tasks</div>
-            </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
-              <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{metrics.bestWorkingHour}:00</div>
-              <div className="text-xs text-orange-600 dark:text-orange-500">Peak Hour</div>
-            </div>
-          </div>
-        )}
+  const getTodayString = () => new Date().toISOString().split("T")[0]
 
-        {/* Insights */}
-        <div className="space-y-4">
-          {insights.length > 0 ? (
-            insights.map((insight) => {
-              const IconComponent = insight.icon
-              return (
-                <div
-                  key={insight.id}
-                  className={`p-4 rounded-xl border transition-all hover:shadow-md ${getPriorityColor(insight.priority)}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
-                      <IconComponent className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-sm">{insight.title}</h4>
-                        <Badge variant="outline" className={`text-xs ${getTypeColor(insight.type)}`}>
-                          {insight.type}
-                        </Badge>
-                        {insight.trend && (
-                          <div
-                            className={`text-xs ${insight.trend === "up" ? "text-green-600" : insight.trend === "down" ? "text-red-600" : "text-gray-600"}`}
-                          >
-                            {insight.trend === "up" ? "↗️" : insight.trend === "down" ? "↘️" : "→"}
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{insight.description}</p>
-                      {insight.value !== undefined && (
-                        <div className="mb-2">
-                          <Progress value={Math.min(insight.value, 100)} className="h-2" />
-                        </div>
-                      )}
-                      {insight.action && (
-                        <Button variant="outline" size="sm" className="text-xs bg-transparent">
-                          {insight.action}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left Side - AI Insights */}
+      <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+              <Brain className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <span className="text-lg font-semibold">AI Productivity Insights</span>
+              <p className="text-sm text-muted-foreground font-normal">Smart analysis & recommendations</p>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Metrics Overview */}
+          {metrics && (
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="text-lg font-bold text-blue-700 dark:text-blue-400">
+                  {metrics.completionRate.toFixed(1)}%
                 </div>
-              )
-            })
-          ) : (
-            <div className="text-center text-muted-foreground py-8">
-              <Brain className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p className="font-medium">Building insights...</p>
-              <p className="text-sm">Complete some tasks to get AI-powered insights</p>
+                <div className="text-xs text-blue-600 dark:text-blue-500">Completion Rate</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-lg p-3 border border-green-200 dark:border-green-800">
+                <div className="text-lg font-bold text-green-700 dark:text-green-400">{metrics.currentStreak}</div>
+                <div className="text-xs text-green-600 dark:text-green-500">Day Streak</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
+                <div className="text-lg font-bold text-purple-700 dark:text-purple-400">{metrics.weeklyVelocity}</div>
+                <div className="text-xs text-purple-600 dark:text-purple-500">Weekly Tasks</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
+                <div className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                  {metrics.bestWorkingHour}:00
+                </div>
+                <div className="text-xs text-orange-600 dark:text-orange-500">Peak Hour</div>
+              </div>
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          {/* Insights */}
+          <div className="space-y-4">
+            {insights.length > 0 ? (
+              insights.map((insight) => {
+                const IconComponent = insight.icon
+                return (
+                  <div
+                    key={insight.id}
+                    className={`p-4 rounded-xl border transition-all hover:shadow-md ${getPriorityColor(insight.priority)}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
+                        <IconComponent className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-sm">{insight.title}</h4>
+                          <Badge variant="outline" className={`text-xs ${getTypeColor(insight.type)}`}>
+                            {insight.type}
+                          </Badge>
+                          {insight.trend && (
+                            <div
+                              className={`text-xs ${insight.trend === "up" ? "text-green-600" : insight.trend === "down" ? "text-red-600" : "text-gray-600"}`}
+                            >
+                              {insight.trend === "up" ? "↗️" : insight.trend === "down" ? "↘️" : "→"}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{insight.description}</p>
+                        {insight.value !== undefined && (
+                          <div className="mb-2">
+                            <Progress value={Math.min(insight.value, 100)} className="h-2" />
+                          </div>
+                        )}
+                        {insight.action && (
+                          <Button variant="outline" size="sm" className="text-xs bg-transparent">
+                            {insight.action}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                <Brain className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                <p className="font-medium">Building insights...</p>
+                <p className="text-sm">Complete some tasks to get AI-powered insights</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Right Side - Advanced Features */}
+      <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <Activity className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold">Advanced Tracking</span>
+                <p className="text-sm text-muted-foreground font-normal">Habits, goals & analytics</p>
+              </div>
+            </CardTitle>
+            <div className="flex gap-1">
+              <Button
+                variant={activeTab === "habits" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTab("habits")}
+                className="text-xs"
+              >
+                Habits
+              </Button>
+              <Button
+                variant={activeTab === "goals" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTab("goals")}
+                className="text-xs"
+              >
+                Goals
+              </Button>
+              <Button
+                variant={activeTab === "analytics" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTab("analytics")}
+                className="text-xs"
+              >
+                Analytics
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Habits Tab */}
+          {activeTab === "habits" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Daily Habits</h3>
+                <Dialog open={isHabitDialogOpen} onOpenChange={setIsHabitDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Habit
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Habit</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="habit-name">Habit Name</Label>
+                        <Input
+                          id="habit-name"
+                          value={newHabit.name}
+                          onChange={(e) => setNewHabit((prev) => ({ ...prev, name: e.target.value }))}
+                          placeholder="e.g., Morning Exercise, Read 30 minutes"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="habit-description">Description</Label>
+                        <Input
+                          id="habit-description"
+                          value={newHabit.description}
+                          onChange={(e) => setNewHabit((prev) => ({ ...prev, description: e.target.value }))}
+                          placeholder="Brief description of the habit"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="habit-frequency">Target per Week</Label>
+                          <Input
+                            id="habit-frequency"
+                            type="number"
+                            min="1"
+                            max="7"
+                            value={newHabit.targetFrequency}
+                            onChange={(e) =>
+                              setNewHabit((prev) => ({ ...prev, targetFrequency: Number.parseInt(e.target.value) }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="habit-category">Category</Label>
+                          <Select
+                            value={newHabit.category}
+                            onValueChange={(value) => setNewHabit((prev) => ({ ...prev, category: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {habitCategories.map((cat) => (
+                                <SelectItem key={cat} value={cat}>
+                                  {cat}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Color</Label>
+                        <div className="flex gap-2 mt-2">
+                          {habitColors.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => setNewHabit((prev) => ({ ...prev, color }))}
+                              className={`w-6 h-6 rounded-full ${color} ${newHabit.color === color ? "ring-2 ring-offset-2 ring-gray-400" : ""}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <Button onClick={addHabit} className="w-full">
+                        Create Habit
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {habits.map((habit) => {
+                  const todayProgress = getWeeklyHabitProgress(habit)
+                  const streak = getHabitStreak(habit)
+                  const todayCompleted = habit.completions.find((c) => c.date === getTodayString() && c.completed)
+
+                  return (
+                    <div key={habit.id} className="p-4 rounded-xl border bg-card hover:shadow-md transition-all">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full ${habit.color}`} />
+                          <div>
+                            <h4 className="font-medium text-sm">{habit.name}</h4>
+                            <p className="text-xs text-muted-foreground">{habit.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteHabit(habit.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Weekly Progress</span>
+                          <span>{Math.round(todayProgress)}%</span>
+                        </div>
+                        <Progress value={todayProgress} className="h-2" />
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              <Flame className="w-3 h-3 mr-1" />
+                              {streak} day streak
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {habit.targetFrequency}x/week
+                            </Badge>
+                          </div>
+                          <Button
+                            variant={todayCompleted ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => toggleHabitCompletion(habit.id, getTodayString())}
+                            className="text-xs"
+                          >
+                            {todayCompleted ? (
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                            ) : (
+                              <Clock className="h-3 w-3 mr-1" />
+                            )}
+                            Today
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {habits.length === 0 && (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium">No habits yet</p>
+                    <p className="text-sm">Create your first habit to start tracking</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Goals Tab */}
+          {activeTab === "goals" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Active Goals</h3>
+                <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Goal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Goal</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="goal-title">Goal Title</Label>
+                        <Input
+                          id="goal-title"
+                          value={newGoal.title}
+                          onChange={(e) => setNewGoal((prev) => ({ ...prev, title: e.target.value }))}
+                          placeholder="e.g., Complete 50 tasks this month"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="goal-description">Description</Label>
+                        <Input
+                          id="goal-description"
+                          value={newGoal.description}
+                          onChange={(e) => setNewGoal((prev) => ({ ...prev, description: e.target.value }))}
+                          placeholder="What you want to achieve"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="goal-target">Target Value</Label>
+                          <Input
+                            id="goal-target"
+                            type="number"
+                            min="1"
+                            value={newGoal.targetValue}
+                            onChange={(e) =>
+                              setNewGoal((prev) => ({ ...prev, targetValue: Number.parseInt(e.target.value) }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="goal-unit">Unit</Label>
+                          <Input
+                            id="goal-unit"
+                            value={newGoal.unit}
+                            onChange={(e) => setNewGoal((prev) => ({ ...prev, unit: e.target.value }))}
+                            placeholder="tasks, hours, etc."
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="goal-deadline">Deadline</Label>
+                        <Input
+                          id="goal-deadline"
+                          type="date"
+                          value={newGoal.deadline}
+                          onChange={(e) => setNewGoal((prev) => ({ ...prev, deadline: e.target.value }))}
+                        />
+                      </div>
+                      <Button onClick={addGoal} className="w-full">
+                        Create Goal
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {goals.map((goal) => {
+                  const progress = (goal.currentValue / goal.targetValue) * 100
+                  const isOverdue = goal.deadline && new Date(goal.deadline) < new Date()
+
+                  return (
+                    <div
+                      key={goal.id}
+                      className={`p-4 rounded-xl border transition-all hover:shadow-md ${isOverdue ? "border-red-200 bg-red-50/50 dark:bg-red-950/20" : "bg-card"}`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-medium text-sm">{goal.title}</h4>
+                          <p className="text-xs text-muted-foreground">{goal.description}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteGoal(goal.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Progress</span>
+                          <span>
+                            {goal.currentValue} / {goal.targetValue} {goal.unit}
+                          </span>
+                        </div>
+                        <Progress value={Math.min(progress, 100)} className="h-2" />
+
+                        <div className="flex items-center justify-between">
+                          <Badge variant={isOverdue ? "destructive" : "outline"} className="text-xs">
+                            {goal.deadline ? new Date(goal.deadline).toLocaleDateString() : "No deadline"}
+                          </Badge>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateGoalProgress(goal.id, goal.currentValue - 1)}
+                              className="text-xs px-2"
+                            >
+                              -
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateGoalProgress(goal.id, goal.currentValue + 1)}
+                              className="text-xs px-2"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {goals.length === 0 && (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Target className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium">No goals set</p>
+                    <p className="text-sm">Create your first goal to track progress</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Analytics Tab */}
+          {activeTab === "analytics" && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm">Productivity Analytics</h3>
+
+              {metrics && (
+                <div className="space-y-4">
+                  {/* Category Performance */}
+                  <div className="p-4 rounded-xl border bg-card">
+                    <h4 className="font-medium text-sm mb-3">Category Performance</h4>
+                    <div className="space-y-2">
+                      {Object.entries(
+                        todos.reduce(
+                          (acc, todo) => {
+                            if (!acc[todo.category]) acc[todo.category] = { total: 0, completed: 0 }
+                            acc[todo.category].total++
+                            if (todo.completed) acc[todo.category].completed++
+                            return acc
+                          },
+                          {} as Record<string, { total: number; completed: number }>,
+                        ),
+                      ).map(([category, stats]) => {
+                        const rate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+                        return (
+                          <div key={category} className="flex items-center justify-between">
+                            <span className="text-xs font-medium">{category}</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={rate} className="w-16 h-2" />
+                              <span className="text-xs text-muted-foreground w-8">{rate.toFixed(0)}%</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Time Distribution */}
+                  <div className="p-4 rounded-xl border bg-card">
+                    <h4 className="font-medium text-sm mb-3">Priority Distribution</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-red-600">High Priority</span>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={(metrics.priorityDistribution.high / todos.length) * 100}
+                            className="w-16 h-2"
+                          />
+                          <span className="text-xs text-muted-foreground w-8">{metrics.priorityDistribution.high}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-amber-600">Medium Priority</span>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={(metrics.priorityDistribution.medium / todos.length) * 100}
+                            className="w-16 h-2"
+                          />
+                          <span className="text-xs text-muted-foreground w-8">
+                            {metrics.priorityDistribution.medium}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-green-600">Low Priority</span>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={(metrics.priorityDistribution.low / todos.length) * 100}
+                            className="w-16 h-2"
+                          />
+                          <span className="text-xs text-muted-foreground w-8">{metrics.priorityDistribution.low}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Habit Analytics */}
+                  {habits.length > 0 && (
+                    <div className="p-4 rounded-xl border bg-card">
+                      <h4 className="font-medium text-sm mb-3">Habit Success Rate</h4>
+                      <div className="space-y-2">
+                        {habits.map((habit) => {
+                          const progress = getWeeklyHabitProgress(habit)
+                          return (
+                            <div key={habit.id} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${habit.color}`} />
+                                <span className="text-xs font-medium">{habit.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Progress value={progress} className="w-16 h-2" />
+                                <span className="text-xs text-muted-foreground w-8">{Math.round(progress)}%</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
